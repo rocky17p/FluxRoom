@@ -11,7 +11,7 @@
 - 🔑 **6-digit room codes** — collision-safe, uppercase alphanumeric
 - 💬 **Real-time chat** — text / code snippets share instantly via Socket.io
 - 💻 **Monaco code editor** — syntax highlighting for 17 languages
-- 📎 **File sharing** — drag-and-drop upload (Cloudinary integration ready)
+- 📎 **Real File Sharing** — Integrated with **Cloudinary** for persistent file storage during the room's life.
 - ⏱ **24-hour auto-expiry** — MongoDB TTL indexes delete rooms & messages automatically
 - 🔄 **Auto-reconnect** — Socket.io reconnects seamlessly on refresh/network drop
 - 📜 **Message history** — previous messages loaded on room join
@@ -19,18 +19,29 @@
 
 ---
 
+## Architecture (Split Deployment)
+
+To ensure stable real-time communication, FluxRoom uses a split architecture:
+
+1.  **Backend (Render)**: Hosted as a permanent Node.js service on [Render](https://render.com). This provides the stable, 24/7 environment required for Socket.io WebSockets/Polling.
+2.  **Frontend (Vercel)**: Hosted as a high-performance static site on [Vercel](https://vercel.com).
+3.  **Database**: Managed MongoDB Atlas with TTL indexes.
+4.  **Storage**: Cloudinary for user-shared files.
+
+---
+
 ## Project Structure
 
 ```
 FluxRoom/
+├── api/             # Vercel function entry (proxy to server)
 ├── server/          # Node.js + Express + Socket.io backend
-│   ├── config/      # MongoDB connection
-│   ├── controllers/ # Room logic (create, validate, fetch messages)
+│   ├── config/      # MongoDB & Cloudinary connection
+│   ├── controllers/ # Room & Upload logic
 │   ├── middleware/  # Rate limiting
 │   ├── models/      # Room + Message (TTL indexed)
 │   ├── routes/      # REST API routes
-│   ├── sockets/     # Socket.io event handlers
-│   └── utils/       # Room code generator
+│   └── sockets/     # Socket.io event handlers
 └── client/          # React + Vite frontend
     └── src/
         ├── api/         # Axios service layer
@@ -41,80 +52,53 @@ FluxRoom/
 
 ---
 
-## Quick Start
+## Setup & Development
 
-### 1. Set up environment variables
+### 1. Backend Setup (Render or Local)
 
-```bash
-# Server
-cp server/.env.example server/.env
-# → Fill in MONGO_URI with your MongoDB Atlas connection string
+- **Environment Variables** (`server/.env`):
+  - `MONGO_URI`: MongoDB Atlas connection string.
+  - `CLIENT_ORIGIN`: Your frontend URL (e.g., `https://flux-room.vercel.app`).
+  - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: From your Cloudinary dashboard.
 
-# Client
-cp client/.env.example client/.env
-# → Update VITE_API_BASE_URL and VITE_SOCKET_URL if deploying remotely
-```
+- **Run Locally**:
+  ```bash
+  cd server
+  npm install
+  npm run dev  # Starts on http://localhost:5000
+  ```
 
-### 2. Start the backend
+### 2. Frontend Setup (Vercel or Local)
 
-```bash
-cd server
-npm install
-npm run dev        # runs on http://localhost:5000
-```
+- **Environment Variables** (Vercel or `client/.env`):
+  - `VITE_API_BASE_URL`: `http://localhost:5000/api` (Local) or `https://your-render-app.onrender.com/api` (Production).
+  - `VITE_SOCKET_URL`: `http://localhost:5000` (Local) or `https://your-render-app.onrender.com` (Production).
 
-### 3. Start the frontend
-
-```bash
-cd client
-npm install
-npm run dev        # runs on http://localhost:5173
-```
-
----
-
-## Environment Variables
-
-### `server/.env`
-| Variable | Description |
-|---|---|
-| `PORT` | Port for Express server (default: 5000) |
-| `MONGO_URI` | MongoDB Atlas connection string |
-| `CLIENT_ORIGIN` | Comma-separated allowed client origins |
-| `CLOUDINARY_*` | Cloudinary credentials for file uploads |
-
-### `client/.env`
-| Variable | Description |
-|---|---|
-| `VITE_API_BASE_URL` | Backend REST API base URL |
-| `VITE_SOCKET_URL` | Backend Socket.io server URL |
+- **Run Locally**:
+  ```bash
+  cd client
+  npm install
+  npm run dev  # Starts on http://localhost:5173
+  ```
 
 ---
 
-## API Reference
+## Deployment Summary
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/rooms` | Create a new room |
-| `GET` | `/api/rooms/:code` | Validate a room (404 if expired) |
-| `GET` | `/api/rooms/:code/messages` | Fetch room message history (last 200) |
+### Backend (Render)
+- **Root Directory**: `server`
+- **Build Command**: `npm install`
+- **Start Command**: `node server.js`
 
-## Socket Events
-
-| Event | Direction | Description |
-|---|---|---|
-| `join_room` | Client → Server | Join a room |
-| `joined` | Server → Client | Confirmation + expiry timestamp |
-| `send_message` | Client → Server | Send a message to the room |
-| `receive_message` | Server → Client | Broadcast new message to room |
-| `user_count` | Server → Client | Current active users in room |
-| `error` | Server → Client | Validation/server errors |
+### Frontend (Vercel)
+- **Framework Preset**: `Vite`
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
 
 ---
 
-## Production Notes
+## Production Security & Scaling
 
-- **MongoDB TTL indexes** are configured on `createdAt` (86400s) on both `Room` and `Message` collections. MongoDB's TTL monitor runs approximately every 60 seconds.
-- **Rate limiting**: Room creation is limited to 5 req/min, general API to 30 req/min. Socket messages are rate-limited at 500ms intervals per socket.
-- **File storage**: Replace the placeholder in `client/src/components/FileUpload.jsx` with a real Cloudinary `upload_preset` call for production.
-- **CORS**: Set `CLIENT_ORIGIN` to your production frontend URL (e.g., `https://fluxroom.vercel.app`).
+- **CORS**: Strictly limited via the `CLIENT_ORIGIN` variable on the backend.
+- **Rate Limiting**: Express-rate-limit prevents abuse of room creation and message endpoints.
+- **Transports**: Socket.io is configured to prefer `polling` then `websocket` for maximum compatibility across different hosting environments.
