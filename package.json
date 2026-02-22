@@ -5,7 +5,7 @@
   "scripts": {
     "install:client": "npm install --prefix client --legacy-peer-deps",
     "build:client": "npm run build --prefix client",
-    "build": "npm run install:client && npm run build:client",
+    "build": "npm run install:client && npm run build:client && mkdir -p public",
     "start": "node server/server.js"
   },
   "dependencies": {
