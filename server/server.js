@@ -16,7 +16,8 @@ const httpServer = http.createServer(app);
 
 // ─── Static Files (Monolith) ─────────────────────────────────────────────────
 
-const distPath = path.join(__dirname, "../client/dist");
+// Use process.cwd() to get the root directory on Vercel
+const distPath = path.join(process.cwd(), "client/dist");
 app.use(express.static(distPath));
 
 // ─── CORS ────────────────────────────────────────────────────────────────────

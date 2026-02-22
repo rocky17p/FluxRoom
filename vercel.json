@@ -13,10 +13,6 @@
       "dest": "/index.js"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "client/dist/assets/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "/index.js"
     }
