@@ -145,7 +145,7 @@ function MessageBubble({ msg, currentUser }) {
                 {isFile ? (
                     <div className="msg-content file">
                         <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>📎 File shared</span>
-                        <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link">
+                        <a href={msg.fileUrl} download={msg.content} target="_blank" rel="noopener noreferrer" className="file-link">
                             <span className="file-link-icon">📄</span>
                             {msg.content}
                         </a>
