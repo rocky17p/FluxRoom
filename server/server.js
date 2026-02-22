@@ -88,16 +88,17 @@ const io = new Server(httpServer, {
 
 registerSocketHandlers(io);
 
-// ─── Start ───────────────────────────────────────────────────────────────────
+// ─── Start / Init ───────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 5000;
 
+// Connect to DB immediately (Serverless friendly)
+connectDB();
+
 // Only start the server if not being required as a module (e.g. by Vercel)
 if (require.main === module) {
-  connectDB().then(() => {
-    httpServer.listen(PORT, () => {
-      console.log(`🚀 FluxRoom server running on port ${PORT}`);
-    });
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 FluxRoom server running on port ${PORT}`);
   });
 }
 
