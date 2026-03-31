@@ -14,6 +14,11 @@ const { registerSocketHandlers } = require("./sockets/roomSocket");
 const app = express();
 const httpServer = http.createServer(app);
 
+// ─── Trust Proxy (Render / Heroku / cloud load balancers) ────────────────────
+// Required for express-rate-limit to correctly identify client IPs via
+// X-Forwarded-For. Without this it throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set("trust proxy", 1);
+
 // ─── Static Files (Monolith) ─────────────────────────────────────────────────
 
 // Use process.cwd() to get the root directory on Vercel

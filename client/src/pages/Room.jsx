@@ -6,12 +6,22 @@ import { connectSocket, disconnectSocket } from "../services/socket";
 import RoomHeader from "../components/RoomHeader";
 import Chat from "../components/Chat";
 import CodeEditor from "../components/CodeEditor";
-import FileUpload from "../components/FileUpload";
+
+const ChatIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+);
+const CodeIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="16 18 22 12 16 6" />
+        <polyline points="8 6 2 12 8 18" />
+    </svg>
+);
 
 const TABS = [
-    { id: "chat", label: "Chat", icon: "💬" },
-    { id: "code", label: "Code", icon: "💻" },
-    { id: "files", label: "Files", icon: "📎" },
+    { id: "chat", label: "Chat", Icon: ChatIcon },
+    { id: "code", label: "Code", Icon: CodeIcon },
 ];
 
 export default function Room() {
@@ -129,7 +139,7 @@ export default function Room() {
         };
     }, []);
 
-    // ── Send message helper (used by Chat & CodeEditor) ───────────────────────
+    // ── Send message helper ───────────────────────────────────────────────────
     const sendMessage = useCallback(
         (type, content, extras = {}) => {
             if (!socket) return;
@@ -142,6 +152,21 @@ export default function Room() {
             });
         },
         [socket, roomCode]
+    );
+
+    // Handle text OR file messages from Chat component
+    const handleChatSend = useCallback(
+        (payload) => {
+            if (payload.startsWith("__file__:")) {
+                const parts = payload.slice("__file__:".length).split(":");
+                const fileName = parts[0];
+                const fileUrl = parts.slice(1).join(":"); // handle URLs with colons
+                sendMessage("file", fileName, { fileUrl, fileName });
+            } else {
+                sendMessage("text", payload);
+            }
+        },
+        [sendMessage]
     );
 
     // ── Error / loading states ────────────────────────────────────────────────
@@ -193,36 +218,34 @@ export default function Room() {
                                 className={`tab-btn${activeTab === tab.id ? " active" : ""}`}
                                 onClick={() => setActiveTab(tab.id)}
                             >
-                                {tab.icon} {tab.label}
+                                <tab.Icon /> {tab.label}
                             </button>
                         ))}
                     </div>
 
                     {activeTab === "chat" && (
-                        <Chat messages={messages} onSend={(text) => sendMessage("text", text)} />
+                        <Chat
+                            messages={messages}
+                            onSend={handleChatSend}
+                            roomCode={roomCode}
+                        />
                     )}
                     {activeTab === "code" && (
                         <CodeEditor onShare={(code, lang) => sendMessage("text", `\`\`\`${lang}\n${code}\n\`\`\``)} />
-                    )}
-                    {activeTab === "files" && (
-                        <FileUpload
-                            roomCode={roomCode}
-                            onShare={(fileName, fileUrl) =>
-                                sendMessage("file", fileName, { fileUrl, fileName })
-                            }
-                        />
                     )}
                 </div>
 
                 {/* Sidebar — always shows full chat history */}
                 <div className="room-sidebar">
-                    <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                    <div className="sidebar-header">
                         All Messages
                     </div>
                     <div className="messages-container" id="sidebar-messages">
                         {messages.length === 0 ? (
                             <div className="messages-empty">
-                                <span className="messages-empty-icon">💬</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" style={{opacity:0.3}}>
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                </svg>
                                 <span>No messages yet</span>
                             </div>
                         ) : (
@@ -237,22 +260,28 @@ export default function Room() {
     );
 }
 
+const SidebarFileIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+    </svg>
+);
+
 function SidebarMessage({ msg }) {
     const isFile = msg.type === "file";
     return (
-        <div style={{ padding: "8px 12px", borderBottom: "1px solid var(--border)", fontSize: "0.82rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                <span style={{ fontWeight: 600, color: "var(--text-secondary)" }}>{msg.sender || "Anonymous"}</span>
-                <span style={{ color: "var(--text-muted)", fontSize: "0.72rem" }}>
+        <div className="sidebar-msg-item">
+            <div className="sidebar-msg-meta">
+                <span className="sidebar-msg-sender">{msg.sender || "Anonymous"}</span>
+                <span className="sidebar-msg-time">
                     {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
             </div>
             {isFile ? (
-                <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link">
-                    <span className="file-link-icon">📎</span>{msg.content}
+                <a href={msg.fileUrl} target="_blank" rel="noopener noreferrer" className="file-link sidebar-file-link">
+                    <SidebarFileIcon />{msg.content}
                 </a>
             ) : (
-                <p style={{ color: "var(--text-primary)", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                <p className="sidebar-msg-content">
                     {msg.content.slice(0, 120)}{msg.content.length > 120 && "…"}
                 </p>
             )}

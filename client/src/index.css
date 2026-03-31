@@ -397,6 +397,7 @@ h3 { font-size: 1.1rem; font-weight: 600; }
   align-items: center; justify-content: center;
   color: var(--text-muted); gap: 10px; font-size: 0.9rem;
 }
+/* .messages-empty-icon kept for backwards compat but SVG used now */
 .messages-empty-icon { font-size: 2.5rem; opacity: 0.5; }
 
 .message-bubble {
@@ -443,6 +444,36 @@ h3 { font-size: 1.1rem; font-weight: 600; }
   color: var(--text-primary);
   display: flex; flex-direction: column; gap: 8px;
 }
+/* ── Message bubble copy wrapper ── */
+.msg-content-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.msg-copy-btn {
+  opacity: 0;
+  transition: opacity var(--transition);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  padding: 4px 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+  line-height: 1;
+}
+.msg-copy-btn:hover { color: var(--text-primary); background: var(--bg-card); }
+.msg-content-wrapper:hover .msg-copy-btn { opacity: 1; }
+/* For own messages, put copy button before content (left side) */
+.message-bubble.own .msg-content-wrapper { flex-direction: row-reverse; }
+.msg-copy-btn.own { margin-top: 2px; }
+
 .file-link {
   display: flex; align-items: center; gap: 8px;
   color: var(--accent); font-size: 0.85rem; font-weight: 500;
@@ -453,11 +484,11 @@ h3 { font-size: 1.1rem; font-weight: 600; }
 
 /* ── Chat Input ── */
 .chat-input-area {
-  padding: 12px 16px; border-top: 1px solid var(--border);
+  padding: 10px 16px 12px; border-top: 1px solid var(--border);
   background: var(--bg-surface);
 }
 .chat-input-row {
-  display: flex; gap: 8px; align-items: flex-end;
+  display: flex; gap: 6px; align-items: flex-end;
 }
 .chat-textarea {
   flex: 1; padding: 10px 14px;
@@ -469,6 +500,30 @@ h3 { font-size: 1.1rem; font-weight: 600; }
 }
 .chat-textarea:focus { border-color: var(--border-focus); }
 .chat-textarea::placeholder { color: var(--text-muted); }
+
+/* WhatsApp-style attach button */
+.attach-btn {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  border-radius: var(--radius-md) !important;
+  padding: 10px !important;
+  transition: color var(--transition), background var(--transition);
+}
+.attach-btn:hover:not(:disabled) {
+  color: var(--accent);
+  background: var(--accent-glow) !important;
+}
+
+/* Send button */
+.send-btn {
+  flex-shrink: 0;
+  padding: 10px 14px !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.chat-hint {
+  font-size: 0.72rem; color: var(--text-muted); margin-top: 5px;
+}
 
 /* ── Code Editor Section ── */
 .code-section {
@@ -529,3 +584,82 @@ h3 { font-size: 1.1rem; font-weight: 600; }
 .room-error-icon { font-size: 4rem; opacity: 0.6; }
 .room-error-title { font-size: 1.5rem; font-weight: 700; color: var(--danger); }
 .room-error-msg { color: var(--text-muted); max-width: 360px; }
+
+/* ── Icon button base ── */
+.icon-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* ── Chat name bar ── */
+.chat-namebar {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-surface);
+  flex-shrink: 0;
+}
+
+.name-edit-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 2px 8px;
+  font-size: 0.82rem;
+  outline: none;
+  width: 120px;
+  font-family: inherit;
+}
+
+/* ── Room header logo ── */
+.room-logo {
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Sidebar structured classes ── */
+.sidebar-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.sidebar-msg-item {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.82rem;
+  transition: background var(--transition);
+}
+.sidebar-msg-item:hover { background: var(--bg-elevated); }
+
+.sidebar-msg-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.sidebar-msg-sender { font-weight: 600; color: var(--text-secondary); }
+.sidebar-msg-time { color: var(--text-muted); font-size: 0.72rem; }
+.sidebar-msg-content {
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+.sidebar-file-link {
+  font-size: 0.8rem;
+  gap: 5px;
+}
