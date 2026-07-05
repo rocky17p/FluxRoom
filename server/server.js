@@ -27,20 +27,8 @@ app.use(express.static(distPath));
 
 // ─── CORS ────────────────────────────────────────────────────────────────────
 
-const allowedOrigins = process.env.CLIENT_ORIGIN
-  ? process.env.CLIENT_ORIGIN.split(",").map((o) => o.trim())
-  : ["http://localhost:5173", "http://localhost:5174"];
-
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    const isLocalhost = origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:");
-    if (isLocalhost || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS policy: origin ${origin} not allowed.`));
-    }
-  },
+  origin: true,
   methods: ["GET", "POST"],
   credentials: true,
 };
@@ -74,16 +62,7 @@ app.get("*", (req, res) => {
 
 const io = new Server(httpServer, {
   cors: {
-    origin: (origin, callback) => {
-      // For socket.io, we use same logic as CORS
-      if (!origin) return callback(null, true);
-      const isLocalhost = origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:");
-      if (isLocalhost || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // More permissive for sockets if needed
-      }
-    },
+    origin: true,
     methods: ["GET", "POST"],
     credentials: true,
   },
