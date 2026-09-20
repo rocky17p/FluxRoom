@@ -6,8 +6,7 @@ const {
     fetchMessages,
 } = require("../controllers/roomController");
 const {
-    uploadFile,
-    uploadSingle,
+    getUploadSignature,
 } = require("../controllers/uploadController");
 const {
     apiLimiter,
@@ -17,8 +16,8 @@ const {
 // POST /api/rooms — create a new room
 router.post("/", createRoomLimiter, createRoom);
 
-// POST /api/rooms/upload — upload a file to Cloudinary
-router.post("/upload", apiLimiter, uploadSingle, uploadFile);
+// POST /api/rooms/upload-signature — generate signature for direct Cloudinary upload
+router.post("/upload-signature", apiLimiter, getUploadSignature);
 
 // GET /api/rooms/:code — validate a room
 router.get("/:code", apiLimiter, validateRoom);
