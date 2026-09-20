@@ -9,8 +9,7 @@
 ## Features
 
 - 🔑 **6-digit room codes** — collision-safe, uppercase alphanumeric
-- 💬 **Real-time chat** — text / code snippets share instantly via Socket.io
-- 💻 **Monaco code editor** — syntax highlighting for 17 languages
+- 💬 **Real-time chat** — instant messaging and code snippet sharing via Socket.io
 - 📎 **Real File Sharing** — Integrated with **Cloudinary** for persistent file storage during the room's life.
 - ⏱ **24-hour auto-expiry** — MongoDB TTL indexes delete rooms & messages automatically
 - 🔄 **Auto-reconnect** — Socket.io reconnects seamlessly on refresh/network drop
@@ -45,7 +44,7 @@ FluxRoom/
 └── client/          # React + Vite frontend
     └── src/
         ├── api/         # Axios service layer
-        ├── components/  # Chat, CodeEditor, FileUpload, RoomHeader
+        ├── components/  # Chat, FileUpload, RoomHeader
         ├── pages/       # Home, Room
         └── services/    # Socket.io singleton
 ```
